@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test: Amminoacidi e Polisaccaridi</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 2.2em;
+            font-weight: 300;
+        }
+        
+        .header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+        
+        .quiz-content {
+            padding: 30px;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4facfe, #00f2fe);
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 4px;
+        }
+        
+        .question-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border-left: 5px solid #4facfe;
+            display: none;
+        }
+        
+        .question-card.active {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .question-number {
+            color: #4facfe;
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-bottom: 10px;
+        }
+        
+        .question-text {
+            font-size: 1.2em;
+            font-weight: 500;
+            margin-bottom: 20px;
+            color: #333;
+            line-height: 1.5;
+        }
+        
+        .options {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .option {
+            background: white;
+            margin: 10px 0;
+            border-radius: 10px;
+            border: 2px solid #e0e0e0;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .option:hover {
+            border-color: #4facfe;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(79, 172, 254, 0.2);
+        }
+        
+        .option.selected {
+            border-color: #4facfe;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+        
+        .option.correct {
+            border-color: #28a745;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+        }
+        
+        .option.incorrect {
+            border-color: #dc3545;
+            background: linear-gradient(135deg, #dc3545 0%, #fd7e92 100%);
+            color: white;
+        }
+        
+        .option label {
+            display: block;
+            padding: 15px 20px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 500;
+        }
+        
+        .option input[type="radio"] {
+            display: none;
+        }
+        
+        .controls {
+            text-align: center;
+            margin-top: 30px;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 1.1em;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 0 10px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(79, 172, 254, 0.3);
+        }
+        
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .results {
+            display: none;
+            text-align: center;
+            padding: 30px;
+        }
+        
+        .score {
+            font-size: 3em;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        
+        .score.excellent { color: #28a745; }
+        .score.good { color: #ffc107; }
+        .score.needs-improvement { color: #dc3545; }
+        
+        .feedback {
+            font-size: 1.2em;
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 10px;
+        }
+        
+        .feedback.excellent { background: #d4edda; color: #155724; }
+        .feedback.good { background: #fff3cd; color: #856404; }
+        .feedback.needs-improvement { background: #f8d7da; color: #721c24; }
+        
+        .explanation {
+            background: #e3f2fd;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+            text-align: left;
+            font-size: 0.95em;
+            line-height: 1.4;
+            display: none;
+        }
+        
+        .show-explanation {
+            background: #6c757d;
+            font-size: 0.9em;
+            padding: 8px 20px;
+            margin-top: 10px;
+        }
+        
+        .detailed-results {
+            text-align: left;
+            margin-top: 30px;
+        }
+        
+        .question-result {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 4px solid;
+        }
+        
+        .question-result.correct { border-left-color: #28a745; }
+        .question-result.incorrect { border-left-color: #dc3545; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧬 Test Biomolecole</h1>
+            <p>Amminoacidi e Polisaccaridi - Livello Intermedio</p>
+        </div>
+        
+        <div class="quiz-content">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            
+            <!-- Question 1 -->
+            <div class="question-card active">
+                <div class="question-number">Domanda 1 di 12</div>
+                <div class="question-text">Quanti sono gli amminoacidi naturali che costituiscono le proteine e che tipo di legami formano tra loro?</div>
+                <ul class="options">
+                    <li class="option">
+                        <label><input type="radio" name="q1" value="a">22 amminoacidi che si uniscono con legami ionici</label>
+                    </li>
+                    <li class="option">
+                        <label><input type="radio" name="q1" value="b">20 amminoacidi che si uniscono con legami peptidici</label>
+                    </li>
+                    <li class="option">
+                        <label><input type="radio" name="q1" value="c">18 amminoacidi che si uniscono con legami covalenti semplici</label>
+                    </li>
+                    <li class="option">
+                        <label><input type="radio" name="q1" value="d">25 amminoacidi che si uniscono con legami a idrogeno</label>
+                    </li>
+                </ul>
+                <div class="explanation">
+                    <strong>Spiegazione:</strong> Esistono esattamente 20 amminoacidi diversi in natura che costituiscono le proteine. Questi si uniscono attraverso legami peptidici, formati dalla reazione tra il gruppo amino (-NH₂) di un amminoacido e il gruppo carbossile (-COOH) di un altro.
+                </div>
+            </div>
+            
+            <!-- Question 2 -->
+            <div class="question-card">
+                <div class="question-number">Domanda 2 di 12</div>
+                <div class="question-text">Quale delle seguenti affermazioni sulla struttura generale degli amminoacidi è CORRETTA?</div>
+                <ul class="options">
+                    <li class="option">
+                        <label><input type="radio" name="q2" value="a">Hanno sempre un gruppo fosfato, un gruppo amino e una catena laterale variabile</label>
+                    </li>
+                    <li class="option">
+                        <label><input type="radio" name="q2" value="b">Contengono un gruppo amino (-NH₂), un gruppo carbossile (-COOH) e una catena laterale (R) specifica</label>
+                    </li>
+                    <li class="option">
+                        <label><input type="radio" name="q2" value="c">Sono formati da un gruppo ossidrilico, un gruppo carbonilico e una catena laterale</label>
+                    </li>
+                    <li class="option">
+                        <label><input type="radio" name="q2" value="d">Possiedono due gruppi amino e un gruppo carbossile per ogni molecola</label>
+                    </li>
+                </ul>
+                <div class="explanation">
+                    <strong>Spiegazione:</strong> Ogni amminoacido ha una struttura base comune: un gruppo amino (-NH₂), un gruppo carbossile (-COOH) e una catena laterale (R) che varia per ogni amminoacido e ne determina le proprietà specifiche.
+                </div>
+            </div>
+            
+            <!-- Question 3 -->
+            <div class="question-card">
+                <div class="question-number">Domanda 3 di 12</div>
+                <div class="question-text">Nella classificazione degli amminoacidi per catena laterale, quale gruppo include Fenilalanina, Tirosina e Triptofano?</div>
+                <ul class="options">
+                    <li class="option">
+                        <label><input type="radio" name="q3" value="a">Amminoacidi polari</label>
+                    </li>
+                    <li class="option">
+                        <label><input type="radio" name="q3" value="b">Amminoacidi carichi positivamente</label>
+                    </li>
+                    <li class="option">
+                        <label><input type="radio" name="q3" value="c">Amminoacidi aromatici</label>
+                    </li>
+                    <li class="option">
+                        <label><input type="radio" name="q3" value="d">Amminoacidi apolari</label>
+                    </li>
+                </ul>
+                <div class="explanation">
+                    <strong>Spiegazione:</strong> Fenilalanina, Tirosina, Triptofano e Istidina sono classificati come amminoacidi aromatici perché contengono anelli aromatici nelle loro catene laterali, che conferiscono loro proprietà chimiche specifiche.
+                </div>
+            </div>
+            
+            <!-- Question 4 -->
+            <div class="question-card">
+                <div class="question-number">Domanda 4 di 12</div>
+                <div class="question-text">Qual è la principale differenza funzionale tra α-glucosio e β-glucosio nei polisaccaridi?</div>
+                <ul class="options">
+                    <li class="option">
+                        <label><input type="radio" name="q4" value="a">L'α-glucosio ha più energia del β-glucosio</label>
+                    </li>
+                    <li class="option">
+                        <label><input type="radio" name="q4" value="b">L'α-glucosio forma polisaccaridi digeribili, il β-glucosio forma polisaccaridi non digeribili (per l'uomo)</label>
+                    </li>
+                    <li class="option">
+                        <label><input type="radio" name="q4" value="c">Il β-glucosio si trova solo negli animali, l'α-glucosio solo nelle piante</label>
+                    </li>
+                    <li class="option">
+                        <label><input type="radio" name="q4" value="d">L'α-glucosio è solubile in acqua, il β-glucosio no</label>
+                    </li>
+                </ul>
+                <div class="explanation">
+                    <strong>Spiegazione:</strong> La piccola differenza nell'orientamento del gruppo -OH tra α e β-glucosio ha enormi conseguenze: l'α-glucosio forma polisaccaridi digeribili (amido, glicogeno), mentre il β-glucosio forma polisaccaridi non digeribili per l'uomo (cellulosa).
+                </div>
+            </div>
+            
+            <!-- Question 5 -->
+            <div class="question-card">
+                <div class="question-number">Domanda 5 di 12</div>
+                <div class="question-text">Il glicogeno si differenzia dall'amido principalmente perché:</div>
+                <ul class="options">
+                    <li class="option">
+                        <label><input type="radio" name="q5" value="a">È formato da β-glucosio invece che da α-glucosio</label>
+                    </li>
+                    <li class="option">
+                        <label><input type="radio" name="q5" value="b">Si trova negli animali ed è la riserva energetica di muscoli e fegato</label>
+                    </li>
+                    <li class="option">
+                        <label><input type="radio" name="q5" value="c">Non è digeribile dall'uomo</label>
+                    </li>
+                    <li class="option">
+                        <label><input type="radio" name="q5" value="d">Ha funzione strutturale invece che energetica</label>
+                    </li>
+                </ul>
+                <div class="explanation">
+                    <strong>Spiegazione:</strong> Il glicogeno è il "polisaccaride animale", equivalente all'amido vegetale. Si trova principalmente nei muscoli e nel fegato come riserva energetica e viene utilizzato quando mancano altre fonti di energia.
+                </div>
+            </div>
+            
+            <!-- Question 6 -->
+            <div class="question-card">
+                <div class="question-number">Domanda 6 di 12</div>
+                <div class="question-text">La cellulosa viene considerata fibra alimentare perché:</div>
+                <ul class="options">
+                    <li class="option">
+                        <label><input type="radio" name="q6" value="a">È formata da α-glucosio ed è facilmente digeribile</label>
+                    </li>
+                    <li class="option">
+                        <label><input type="radio" name="q6" value="b">È formata da β-glucosio e non è digeribile dall'uomo, ma solo dai ruminanti</label>
+                    </li>
+                    <li class="option">
+                        <label><input type="radio" name="q6" value="c">Contiene troppe proteine per essere considerata un carboidrato</label>
+                    </li>
+                    <li class="option">
+                        <label><input type="radio" name="q6" value="d">È solubile in acqua e viene assorbita rapidamente</label>
+                    </li>
+                </ul>
+                <div class="explanation">
+                    <strong>Spiegazione:</strong> La cellulosa è formata da catene di β-glucosio che l'uomo non riesce a digerire, a differenza dei ruminanti che hanno batteri speciali nel rumine. Per questo viene considerata fibra alimentare.
+                </div>
+            </div>
+            
+            <!-- Question 7 -->
+            <div class="question-card">
+                <div class="question-number">Domanda 7 di 12</div>
+                <div class="question-text">Quale polisaccaride ha funzione strutturale negli esoscheletri di crostacei e insetti?</div>
+                <ul class="options">
+                    <li class="option">
+                        <label><input type="radio" name="q7" value="a">Amido</label>
+                    </li>
+                    <li class="option">
+                        <label><input type="radio" name="q7" value="b">Glicogeno</label>
+                    </li>
+                    <li class="option">
+                        <label><input type="radio" name="q7" value="c">Cellulosa</label>
+                    </li>
+                    <li class="option">
+                        <label><input type="radio" name="q7" value="d">Chitina</label>
+                    </li>
+                </ul>
+                <div class="explanation">
+                    <strong>Spiegazione:</strong> La chitina è il polisaccaride strutturale degli animali, formato da catene di zucchero + azoto. È molto resistente e forma gli esoscheletri di crostacei, insetti e le pareti cellulari dei funghi.
+                </div>
+            </div>
+            
+            <!-- Question 8 -->
+            <div class="question-card">
+                <div class="question-number">Domanda 8 di 12</div>
+                <div class="question-text">Perché l'amido deve essere cotto per essere digeribile dall'uomo?</div>
+                <ul class="options">
+                    <li class="option">
+                        <label><input type="radio" name="q8" value="a">Perché diventa β-glucosio dopo la cottura</label>
+                    </li>
+                    <li class="option">
+                        <label><input type="radio" name="q8" value="b">Perché la cottura rompe i legami e rende accessibili le catene di α-glucosio ai nostri enzimi</label>
+                    </li>
+                    <li class="option">
+                        <label><input type="radio" name="q8" value="c">Perché il calore aggiunge proteine necessarie per la digestione</label>
+                    </li>
+                    <li class="option">
+                        <label><input type="radio" name="q8" value="d">Perché crudo è tossico per l'organismo umano</label>
+                    </li>
+                </ul>
+                <div class="explanation">
+                    <strong>Spiegazione:</strong> L'amido crudo ha una struttura compatta che i nostri enzimi digestivi non riescono ad aggredire efficacemente. La cottura spezza questa struttura rendendo le catene di α-glucosio accessibili alla digestione.
+                </div>
+            </div>
+            
+            <!-- Question 9 -->
+            <div class="question-card">
+                <div class="question-number">Domanda 9 di 12</div>
+                <div class="question-text">Nell'alimentazione umana, i carboidrati forniscono:</div>
+                <ul class="options">
+                    <li class="option">
+                        <label><input type="radio" name="q9" value="a">4,5 Kcal per grammo e sono la principale fonte di energia</label>
+                    </li>
+                    <li class="option">
+                        <label><input type="radio" name="q9" value="b">9 Kcal per grammo come i grassi</label>
+                    </li>
+                    <li class="option">
+                        <label><input type="radio" name="q9" value="c">Solo fibra alimentare senza valore energetico</label>
+                    </li>
+                    <li class="option">
+                        <label><input type="radio" name="q9" value="d">2 Kcal per grammo e hanno funzione principalmente strutturale</label>
+                    </li>
+                </ul>
+                <div class="explanation">
+                    <strong>Spiegazione:</strong> I carboidrati forniscono 4,5 Kcal per grammo e rappresentano la principale fonte di energia per l'organismo umano. Si trovano in alimenti come pane, pasta, riso, patate, castagne, legumi.
+                </div>
+            </div>
+            
+            <!-- Question 10 -->
+            <div class="question-card">
+                <div class="question-number">Domanda 10 di 12</div>
+                <div class="question-text">Il collegamento funzionale tra amminoacidi e polisaccaridi nell'organismo è che:</div>
+                <ul class="options">
+                    <li class="option">
+                        <label><input type="radio" name="q10" value="a">I polisaccaridi forniscono energia necessaria per sintetizzare le proteine dagli amminoacidi</label>
+                    </li>
+                    <li class="option">
+                        <label><input type="radio" name="q10" value="b">Gli amminoacidi si trasformano direttamente in polisaccaridi</label>
+                    </li>
+                    <li class="option">
+                        <label><input type="radio" name="q10" value="c">Hanno funzioni completamente indipendenti nell'organismo</label>
+                    </li>
+                    <li class="option">
+                        <label><input type="radio" name="q10" value="d">I polisaccaridi servono solo per costruire la struttura delle proteine</label>
+                    </li>
+                </ul>
+                <div class="explanation">
+                    <strong>Spiegazione:</strong> C'è un "lavoro di squadra": i carboidrati (polisaccaridi) forniscono l'energia necessaria per i processi metabolici, inclusa la sintesi delle proteine a partire dagli amminoacidi. È una collaborazione funzionale fondamentale.
+                </div>
+            </div>
+            
+            <!-- Question 11 -->
+            <div class="question-card">
+                <div class="question-number">Domanda 11 di 12</div>
+                <div class="question-text">Quale processo caratterizza sia la formazione delle proteine che dei polisaccaridi?</div>
+                <ul class="options">
+                    <li class="option">
+                        <label><input type="radio" name="q11" value="a">Reazioni di ossidazione che liberano energia</label>
+                    </li>
+                    <li class="option">
+                        <label><input type="radio" name="q11" value="b">Reazioni di condensazione che eliminano molecole di acqua</label>
+                    </li>
+                    <li class="option">
+                        <label><input type="radio" name="q11" value="c">Reazioni di idrolisi che aggiungono acqua</label>
+                    </li>
+                    <li class="option">
+                        <label><input type="radio" name="q11" value="d">Processi che avvengono solo a temperatura elevata</label>
+                    </li>
+                </ul>
+                <div class="explanation">
+                    <strong>Spiegazione:</strong> Sia la formazione dei legami peptidici (proteine) che dei legami glicosidici (polisaccaridi) avviene attraverso reazioni di condensazione, nelle quali viene eliminata una molecola di acqua (H₂O) per ogni legame formato.
+                </div>
+            </div>
+            
+            <!-- Question 12 -->
+            <div class="question-card">
+                <div class="question-number">Domanda 12 di 12</div>
+                <div class="question-text">Cosa determina principalmente la forma e la funzione di una proteina?</div>
+                <ul class="options">
+                    <li class="option">
+                        <label><input type="radio" name="q12" value="a">Il numero totale di amminoacidi presenti</label>
+                    </li>
+                    <li class="option">
+                        <label><input type="radio" name="q12" value="b">La temperatura alla quale viene sintetizzata</label>
+                    </li>
+                    <li class="option">
+                        <label><input type="radio" name="q12" value="c">La sequenza specifica degli amminoacidi</label>
+                    </li>
+                    <li class="option">
+                        <label><input type="radio" name="q12" value="d">La presenza di carboidrati nella struttura</label>
+                    </li>
+                </ul>
+                <div class="explanation">
+                    <strong>Spiegazione:</strong> La sequenza degli amminoacidi (ordine specifico) è fondamentale perché determina come la proteina si ripiega nello spazio tridimensionale, e questo ripiegamento determina la sua forma e, di conseguenza, la sua funzione biologica.
+                </div>
+            </div>
+            
+            <div class="controls">
+                <button class="btn" id="prevBtn" onclick="changeQuestion(-1)" disabled>← Precedente</button>
+                <button class="btn" id="nextBtn" onclick="changeQuestion(1)">Avanti →</button>
+                <button class="btn" id="submitBtn" onclick="submitQuiz()" style="display: none;">Termina Test</button>
+                <button class="btn show-explanation" onclick="toggleExplanation()" style="display: none;">Mostra Spiegazione</button>
+            </div>
+        </div>
+        
+        <div class="results" id="results">
+            <h2>Risultati del Test</h2>
+            <div class="score" id="scoreDisplay"></div>
+            <div class="feedback" id="feedbackText"></div>
+            <button class="btn" onclick="restartQuiz()">Ricomincia Test</button>
+            <button class="btn show-explanation" onclick="showDetailedResults()">Vedi Risposte Dettagliate</button>
+            <div class="detailed-results" id="detailedResults"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentQuestion = 0;
+        const totalQuestions = 12;
+        let answers = {};
+        let showingResults = false;
+        
+        const correctAnswers = {
+            q1: 'b',
+            q2: 'b', 
+            q3: 'c',
+            q4: 'b',
+            q5: 'b',
+            q6: 'b',
+            q7: 'd',
+            q8: 'b',
+            q9: 'a',
+            q10: 'a',
+            q11: 'b',
+            q12: 'c'
+        };
+
+        function updateProgress() {
+            const progress = ((currentQuestion + 1) / totalQuestions) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+        }
+
+        function changeQuestion(direction) {
+            if (showingResults) return;
+            
+            const questions = document.querySelectorAll('.question-card');
+            questions[currentQuestion].classList.remove('active');
+            
+            currentQuestion += direction;
+            
+            if (currentQuestion < 0) currentQuestion = 0;
+            if (currentQuestion >= totalQuestions) currentQuestion = totalQuestions - 1;
+            
+            questions[currentQuestion].classList.add('active');
+            updateProgress();
+            updateButtons();
+        }
+
+        function updateButtons() {
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            const submitBtn = document.getElementById('submitBtn');
+            
+            prevBtn.disabled = currentQuestion === 0;
+            
+            if (currentQuestion === totalQuestions - 1) {
+                nextBtn.style.display = 'none';
+                submitBtn.style.display = 'inline-block';
+            } else {
+                nextBtn.style.display = 'inline-block';
+                submitBtn.style.display = 'none';
+            }
+        }
+
+        function toggleExplanation() {
+            const explanation = document.querySelector('.question-card.active .explanation');
+            if (explanation.style.display === 'none' || explanation.style.display === '') {
+                explanation.style.display = 'block';
+            } else {
+                explanation.style.display = 'none';
+            }
+        }
+
+        function submitQuiz() {
+            // Collect all answers
+            for (let i = 1; i <= totalQuestions; i++) {
+                const selected = document.querySelector(`input[name="q${i}"]:checked`);
+                if (selected) {
+                    answers[`q${i}`] = selected.value;
+                }
+            }
+            
+            showResults();
+        }
+
+        function showResults() {
+            document.querySelector('.quiz-content').style.display = 'none';
+            document.getElementById('results').style.display = 'block';
+            showingResults = true;
+            
+            let score = 0;
+            for (let q in correctAnswers) {
+                if (answers[q] === correctAnswers[q]) {
+                    score++;
+                }
+            }
+            
+            const percentage = (score / totalQuestions * 100).toFixed(0);
+            const scoreDisplay = document.getElementById('scoreDisplay');
+            const feedbackText = document.getElementById('feedbackText');
+            
+            scoreDisplay.textContent = `${score}/${totalQuestions} (${percentage}%)`;
+            
+            if (percentage >= 80) {
+                scoreDisplay.className = 'score excellent';
+                feedbackText.className = 'feedback excellent';
+                feedbackText.innerHTML = '🎉 <strong>Eccellente!</strong><br>Hai dimostrato una comprensione approfondita degli amminoacidi e polisaccaridi. Ottima preparazione!';
+            } else if (percentage >= 65) {
+                scoreDisplay.className = 'score good';
+                feedbackText.className = 'feedback good';
+                feedbackText.innerHTML = '👍 <strong>Buon lavoro!</strong><br>Hai una buona comprensione generale. Rivedere alcuni dettagli ti aiuterà a migliorare ulteriormente.';
+            } else {
+                scoreDisplay.className = 'score needs-improvement';
+                feedbackText.className = 'feedback needs-improvement';
+                feedbackText.innerHTML = '📚 <strong>Continua a studiare!</strong><br>È necessario rivedere i concetti fondamentali. Concentrati sulle differenze tra α e β-glucosio e sulla classificazione degli amminoacidi.';
+            }
+        }
+
+        function showDetailedResults() {
+            const detailedResults = document.getElementById('detailedResults');
+            let html = '<h3>Analisi Dettagliata delle Risposte</h3>';
+            
+            const questions = [
+                'Quanti sono gli amminoacidi naturali che costituiscono le proteine e che tipo di legami formano tra loro?',
+                'Quale delle seguenti affermazioni sulla struttura generale degli amminoacidi è CORRETTA?',
+                'Nella classificazione degli amminoacidi per catena laterale, quale gruppo include Fenilalanina, Tirosina e Triptofano?',
+                'Qual è la principale differenza funzionale tra α-glucosio e β-glucosio nei polisaccaridi?',
+                'Il glicogeno si differenzia dall\'amido principalmente perché:',
+                'La cellulosa viene considerata fibra alimentare perché:',
+                'Quale polisaccaride ha funzione strutturale negli esoscheletri di crostacei e insetti?',
+                'Perché l\'amido deve essere cotto per essere digeribile dall\'uomo?',
+                'Nell\'alimentazione umana, i carboidrati forniscono:',
+                'Il collegamento funzionale tra amminoacidi e polisaccaridi nell\'organismo è che:',
+                'Quale processo caratterizza sia la formazione delle proteine che dei polisaccaridi?',
+                'Cosa determina principalmente la forma e la funzione di una proteina?'
+            ];
+            
+            const correctTexts = [
+                '20 amminoacidi che si uniscono con legami peptidici',
+                'Contengono un gruppo amino (-NH₂), un gruppo carbossile (-COOH) e una catena laterale (R) specifica',
+                'Amminoacidi aromatici',
+                'L\'α-glucosio forma polisaccaridi digeribili, il β-glucosio forma polisaccaridi non digeribili (per l\'uomo)',
+                'Si trova negli animali ed è la riserva energetica di muscoli e fegato',
+                'È formata da β-glucosio e non è digeribile dall\'uomo, ma solo dai ruminanti',
+                'Chitina',
+                'Perché la cottura rompe i legami e rende accessibili le catene di α-glucosio ai nostri enzimi',
+                '4,5 Kcal per grammo e sono la principale fonte di energia',
+                'I polisaccaridi forniscono energia necessaria per sintetizzare le proteine dagli amminoacidi',
+                'Reazioni di condensazione che eliminano molecole di acqua',
+                'La sequenza specifica degli amminoacidi'
+            ];
+            
+            for (let i = 1; i <= totalQuestions; i++) {
+                const userAnswer = answers[`q${i}`];
+                const correctAnswer = correctAnswers[`q${i}`];
+                const isCorrect = userAnswer === correctAnswer;
+                
+                html += `
+                    <div class="question-result ${isCorrect ? 'correct' : 'incorrect'}">
+                        <strong>Domanda ${i}:</strong> ${questions[i-1]}<br>
+                        <strong>Risposta corretta:</strong> ${correctTexts[i-1]}<br>
+                        <strong>Il tuo risultato:</strong> ${isCorrect ? '✅ Corretta' : '❌ Sbagliata'}
+                    </div>
+                `;
+            }
+            
+            detailedResults.innerHTML = html;
+        }
+
+        function restartQuiz() {
+            currentQuestion = 0;
+            answers = {};
+            showingResults = false;
+            
+            // Reset all selections
+            document.querySelectorAll('input[type="radio"]').forEach(input => {
+                input.checked = false;
+            });
+            
+            // Reset option styles
+            document.querySelectorAll('.option').forEach(option => {
+                option.className = 'option';
+            });
+            
+            // Hide explanations
+            document.querySelectorAll('.explanation').forEach(exp => {
+                exp.style.display = 'none';
+            });
+            
+            // Reset display
+            document.querySelector('.quiz-content').style.display = 'block';
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('detailedResults').innerHTML = '';
+            
+            // Show first question
+            document.querySelectorAll('.question-card').forEach((card, index) => {
+                card.classList.toggle('active', index === 0);
+            });
+            
+            updateProgress();
+            updateButtons();
+        }
+
+        // Handle option selection
+        document.addEventListener('change', function(e) {
+            if (e.target.type === 'radio') {
+                const options = e.target.closest('.question-card').querySelectorAll('.option');
+                options.forEach(option => {
+                    option.classList.remove('selected');
+                });
+                e.target.closest('.option').classList.add('selected');
+                
+                // Show explanation button for current question
+                const explanationBtn = document.querySelector('.show-explanation');
+                explanationBtn.style.display = 'inline-block';
+            }
+        });
+
+        // Initialize
+        updateProgress();
+        updateButtons();
+    </script>
+</body>
+</html>
